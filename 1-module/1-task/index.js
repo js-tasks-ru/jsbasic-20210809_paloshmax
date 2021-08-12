@@ -1,3 +1,4 @@
 function factorial(n) {
-  // ваш код...
+  for (var i = 1, res = 1; i <= n; res *= i++);
+  return res;
 }
