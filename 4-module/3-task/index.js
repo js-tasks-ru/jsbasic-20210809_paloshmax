@@ -10,6 +10,7 @@ function highlight(table) {
     } else {
       row.setAttribute("hidden", true);
     }
+    console.dir(row);
     if (row.cells[2].textContent === "m") row.classList.add("male");
     if (row.cells[2].textContent === "f") row.classList.add("female");
     if (row.cells[1].textContent < 18)
