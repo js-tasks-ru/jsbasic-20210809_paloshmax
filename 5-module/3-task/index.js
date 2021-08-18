@@ -35,6 +35,7 @@ function initCarousel() {
       }
       toggleArrows(0, slideContainer.children.length - 1, slideNumber);
     });
+
     /// Фикс перерасчета (в демонстрации этого нет)
     window.addEventListener("resize", (e) => {
       let offset = slideContainer.offsetWidth;
