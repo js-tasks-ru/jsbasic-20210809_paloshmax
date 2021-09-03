@@ -1,145 +1,139 @@
 export default class StepSlider {
   constructor({ steps, value = 0 }) {
-    this._steps = steps;
-    let slider = this._createFragment(
+    this._options = {
+      steps: steps,
+      segments: steps - 1,
+      currentStep: value,
+    };
+    this._render();
+  }
+
+  _render() {
+    this._elem = this._createFragment(
       `
       <div class="slider">
         <div class="slider__thumb">
-          <span class="slider__value">${value}</span>
+          <span class="slider__value"></span>
         </div>
         <div class="slider__progress"></div>
         <div class="slider__steps">
-        ${new Array(this._steps).fill().reduce((acc, _, key) => {
-          if (key === value)
-            acc = acc.concat(`<span class="slider__step-active"></span>`);
-          else acc = acc.concat(`<span></span>`);
-          return acc;
-        }, "")}
+        ${`<span></span>`.repeat(this._options.steps)}
         </div>
       </div>
     `,
       true
     );
-    this._currentStep = value;
-    this._engine(slider);
-    this._elem = slider;
+    this._parts = {
+      value: this._elem.querySelector(".slider__value"),
+      thumb: this._elem.querySelector(".slider__thumb"),
+      progress: this._elem.querySelector(".slider__progress"),
+      steps: this._elem.querySelector(".slider__steps"),
+    };
+    this._setInterface(this._calculations());
+    this._engine();
   }
-  _engine(slider) {
-    let segments = slider.querySelector(".slider__steps").children;
-    let sliderValue = slider.querySelector(".slider__value");
-    let tumb = slider.querySelector(".slider__thumb");
-    let progress = slider.querySelector(".slider__progress");
 
-    let render = (e) => {
-      /// удаляем прошлый стиль
-      segments[this._currentStep].classList.remove("slider__step-active");
+  _setInterface({ amount, percents }) {
+    this._parts.thumb.style.left = percents + "%";
+    this._parts.progress.style.width = percents + "%";
 
-      /// вычисляем шаг и добавляем новый стиль
-      if (e)
-        this._currentStep = closestPoint(
-          getSegmentsCoords(segments),
-          e.clientX
-        ).key;
-      sliderValue.textContent = this._currentStep;
-      segments[this._currentStep].classList.add("slider__step-active");
+    this._parts.value.textContent = amount;
 
-      let position = (100 / (this._steps - 1)) * this._currentStep + "%";
-      progress.style.width = position;
-      tumb.style.left = position;
+    if (this._options.currentStep !== amount)
+      this._parts.steps.children[this._options.currentStep].classList.remove(
+        "slider__step-active"
+      );
+    this._parts.steps.children[amount].classList.add("slider__step-active");
 
-      if (e) {
+    /// Сохраняем текущий шаг для следующего
+    this._options.currentStep = amount;
+  }
+
+  _calculations(e, displace) {
+    let amount = this._options.currentStep;
+    let segments = this._options.segments;
+    let percents;
+    let normalisedPos;
+    if (e instanceof Event) {
+      let cursorPos = e.clientX - this._elem.getBoundingClientRect().left;
+      let segmentLength = this._elem.offsetWidth / segments;
+      amount = Math.round(cursorPos / segmentLength);
+      amount = amount < 0 ? 0 : amount > segments ? segments : amount;
+      if (e.type === "click" || e.type === "pointerup") {
+        normalisedPos = (amount * segmentLength) / this._elem.offsetWidth;
+
         let sliderChangeEvent = new CustomEvent("slider-change", {
-          detail: this._currentStep,
+          detail: amount,
           bubbles: true,
         });
-        e.target.dispatchEvent(sliderChangeEvent);
-        /// вешаем обработчик после чтобы не сработал в процессе текущего клика
-        setTimeout(() => this._elem.addEventListener("click", render));
+        this._elem.dispatchEvent(sliderChangeEvent);
+      } else {
+        normalisedPos = (cursorPos - displace) / this._elem.offsetWidth;
+        if (normalisedPos <= 0) normalisedPos = 0;
+        if (normalisedPos >= 1) normalisedPos = 1;
       }
-    };
-
-    let coreRender = (e) => {
-      moveHandler = moveHandler.bind(this);
-      clearHandler = clearHandler.bind(this);
-      let lastSegment = -1;
-      let target = e.target.closest(".slider__thumb");
-      if (!target) return;
-
-      if (target) {
-        this._elem.classList.add("slider_dragging");
-        this._elem.removeEventListener("click", render);
-      }
-      let offsetBtn = e.clientX - tumb.getBoundingClientRect().left;
-      document.addEventListener("pointermove", moveHandler);
-      document.addEventListener("pointerup", clearHandler);
-      function moveHandler(e) {
-        /// Обработка контрольных пунктов
-        if (e) {
-          this._currentStep = closestPoint(
-            getSegmentsCoords(segments),
-            e.clientX
-          ).key;
-          if (lastSegment != this._currentStep && lastSegment !== -1) {
-            segments[lastSegment].classList.remove("slider__step-active");
-          }
-        }
-        sliderValue.textContent = this._currentStep;
-        lastSegment = this._currentStep;
-        segments[this._currentStep].classList.add("slider__step-active");
-
-        /// Обработка передвижения
-        let startOffsetX = e.clientX - this._elem.getBoundingClientRect().left;
-        /// Можно и 10 вручную прописать, а можно так, интересно узнать как решить без моей выдумки
-        let kickOffLeftMargin = parseInt(
-          window.getComputedStyle(tumb).marginLeft
-        );
-        let calculations =
-          (startOffsetX - offsetBtn - kickOffLeftMargin) /
-          this._elem.offsetWidth;
-        if (calculations <= 0) {
-          calculations = 0;
-        }
-        if (calculations >= 1) {
-          calculations = 1;
-        }
-        progress.style.width = calculations * 100 + "%";
-        tumb.style.left = calculations * 100 + "%";
-
-        sliderValue.textContent = this._currentStep;
-      }
-      function clearHandler(e) {
-        /// Рендер по клику
-        render(e);
-        this._elem.classList.remove("slider_dragging");
-
-        document.removeEventListener("pointerup", clearHandler);
-        document.removeEventListener("pointermove", moveHandler);
-      }
-    };
-
-    /// Рендер начального состояния
-    render();
-
-    slider.addEventListener("pointerdown", coreRender);
-    slider.addEventListener("click", render);
-
-    function getSegmentsCoords(segments) {
-      return Array.prototype.map.call(segments, (point) => {
-        return point.getBoundingClientRect().left;
-      });
+    } else {
+      normalisedPos = amount / segments;
     }
-    function closestPoint(arr, point) {
-      if (!Array.isArray(arr)) return [];
-      point = Number.isFinite(point) ? point : 0;
-      let prevDiff = Infinity;
-      let result = arr.findIndex((value, key) => {
-        let diff = Math.abs(value - point);
-        return diff >= prevDiff ? true : ((prevDiff = diff), false);
-      });
-      result = result === -1 ? arr.length - 1 : result - 1;
-      return { key: result, value: arr[result] };
-    }
+    percents = normalisedPos * 100;
+    return { amount, percents };
   }
+
+  _getDisplacement(e) {
+    let styleLeft = this._parts.thumb.style.left;
+    let startX = this._parts.thumb.getBoundingClientRect().left;
+    this._parts.thumb.style.left =
+      e.clientX - this._elem.getBoundingClientRect().left + "px";
+    let endX = this._parts.thumb.getBoundingClientRect().left;
+    this._parts.thumb.style.left = styleLeft;
+    return endX - startX;
+  }
+
+  _handlerClick(e) {
+    e.preventDefault();
+
+    this._setInterface(this._calculations(e));
+  }
+
+  _handlerClickDown(e) {
+    e.preventDefault();
+
+    this._elem.classList.add("slider_dragging");
+    this._elem.removeEventListener("click", this._handlerClick);
+
+    let displace = this._getDisplacement(e);
+
+    let handlerMove = (e) => {
+      e.preventDefault();
+
+      this._setInterface(this._calculations(e, displace));
+    };
+
+    let handlerClear = (e) => {
+      e.preventDefault();
+
+      this._elem.classList.remove("slider_dragging");
+      setTimeout(() =>
+        this._elem.addEventListener("click", this._handlerClick)
+      );
+      this._setInterface(this._calculations(e));
+
+      document.removeEventListener("pointermove", handlerMove);
+      document.removeEventListener("pointerup", handlerClear);
+    };
+
+    document.addEventListener("pointermove", handlerMove);
+    document.addEventListener("pointerup", handlerClear);
+  }
+
+  _engine() {
+    this._handlerClick = this._handlerClick.bind(this);
+    this._handlerClickDown = this._handlerClickDown.bind(this);
+    this._setInterface(this._calculations());
+    this._elem.addEventListener("click", this._handlerClick);
+    this._parts.thumb.addEventListener("pointerdown", this._handlerClickDown);
+  }
+
   _createFragment(html, isElement) {
     isElement = isElement || false;
     let fragment = document.createElement("template");
@@ -148,6 +142,7 @@ export default class StepSlider {
       ? fragment.content
       : fragment.content.firstElementChild;
   }
+
   get elem() {
     return this._elem;
   }
