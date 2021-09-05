@@ -1,7 +1,7 @@
-import createElement from '../../assets/lib/create-element.js';
-import StepSlider from './index.js';
+import createElement from "../../assets/lib/create-element.js";
+import StepSlider from "./index.js";
 
-describe('7-module-4-task', () => {
+describe("7-module-4-task", () => {
   let stepSlider;
 
   let styleElement;
@@ -13,7 +13,7 @@ describe('7-module-4-task', () => {
     config = {
       steps: 3,
       value: 0,
-    }
+    };
 
     styleElement = createElement(`
       <style>
@@ -119,7 +119,7 @@ describe('7-module-4-task', () => {
 
     stepSlider = new StepSlider(config);
 
-    let holder = document.querySelector('#holder');
+    let holder = document.querySelector("#holder");
     holder.append(stepSlider.elem);
   });
 
@@ -128,21 +128,21 @@ describe('7-module-4-task', () => {
     styleElement.remove();
   });
 
-  describe('отрисовка', () => {
-    it('после создания должно быть нарисовано количество шагов переданное в момент создания', () => {
-      let steps = stepSlider.elem.querySelectorAll('.slider__steps span');
+  describe("отрисовка", () => {
+    it("после создания должно быть нарисовано количество шагов переданное в момент создания", () => {
+      let steps = stepSlider.elem.querySelectorAll(".slider__steps span");
 
       expect(steps.length).toBe(3);
     });
 
-    it('первый шаг должен быть активным', () => {
-      let step1 = stepSlider.elem.querySelector('.slider__steps span');
+    it("первый шаг должен быть активным", () => {
+      let step1 = stepSlider.elem.querySelector(".slider__steps span");
 
-      expect(step1.classList.contains('slider__step-active')).toBe(true);
+      expect(step1.classList.contains("slider__step-active")).toBe(true);
     });
   });
 
-  describe('изменение значение Drag-and-Drop', () => {
+  describe("изменение значение Drag-and-Drop", () => {
     let thumb;
     let progress;
 
@@ -153,43 +153,52 @@ describe('7-module-4-task', () => {
     let pointerMoveClientX;
 
     beforeEach(() => {
-      thumb = stepSlider.elem.querySelector('.slider__thumb');
-      progress = stepSlider.elem.querySelector('.slider__progress');
+      thumb = stepSlider.elem.querySelector(".slider__thumb");
+      progress = stepSlider.elem.querySelector(".slider__progress");
 
       let sliderRectLeft = stepSlider.elem.getBoundingClientRect().left;
       pointerMoveClientX = sliderRectLeft + 99;
 
-      pointerDownEvent = new PointerEvent('pointerdown', { bubbles: true });
-      pointerMoveEvent = new PointerEvent('pointermove', { clientX: pointerMoveClientX, bubbles: true });
-      pointerUpEvent = new PointerEvent('pointerup', { clientX: pointerMoveClientX, bubbles: true });
-    })
-
-    it('должен перемещать ползунок после захвата и перемещения', () => {
-      thumb.dispatchEvent(pointerDownEvent);
-      thumb.dispatchEvent(pointerMoveEvent);
-
-      expect(thumb.style.left).toBe('30%');
+      pointerDownEvent = new PointerEvent("pointerdown", {
+        clientX: sliderRectLeft,
+        bubbles: true,
+      });
+      pointerMoveEvent = new PointerEvent("pointermove", {
+        clientX: pointerMoveClientX,
+        bubbles: true,
+      });
+      pointerUpEvent = new PointerEvent("pointerup", {
+        clientX: pointerMoveClientX,
+        bubbles: true,
+      });
     });
 
-    it('должен добавлять класс slider_dragging', () => {
+    it("должен перемещать ползунок после захвата и перемещения", () => {
       thumb.dispatchEvent(pointerDownEvent);
       thumb.dispatchEvent(pointerMoveEvent);
 
-      expect(stepSlider.elem.classList.contains('slider_dragging')).toBe(true);
+      expect(thumb.style.left).toBe("30%");
     });
 
-    it('должен задавать закрашиваемую область до ползунка', () => {
+    it("должен добавлять класс slider_dragging", () => {
       thumb.dispatchEvent(pointerDownEvent);
       thumb.dispatchEvent(pointerMoveEvent);
 
-      expect(progress.style.width).toBe('30%');
+      expect(stepSlider.elem.classList.contains("slider_dragging")).toBe(true);
     });
 
-    it('должен генерировать событие изменения значения', (done) => {
+    it("должен задавать закрашиваемую область до ползунка", () => {
       thumb.dispatchEvent(pointerDownEvent);
       thumb.dispatchEvent(pointerMoveEvent);
 
-      stepSlider.elem.addEventListener('slider-change', (event) => {
+      expect(progress.style.width).toBe("30%");
+    });
+
+    it("должен генерировать событие изменения значения", (done) => {
+      thumb.dispatchEvent(pointerDownEvent);
+      thumb.dispatchEvent(pointerMoveEvent);
+
+      stepSlider.elem.addEventListener("slider-change", (event) => {
         expect(event.detail).toBe(1);
 
         done();
@@ -197,10 +206,9 @@ describe('7-module-4-task', () => {
 
       thumb.dispatchEvent(pointerUpEvent);
     });
-
   });
 
-  describe('изменение значение по клику', () => {
+  describe("изменение значение по клику", () => {
     let thumb;
     let progress;
 
@@ -209,29 +217,32 @@ describe('7-module-4-task', () => {
     let pointerMoveClientX;
 
     beforeEach(() => {
-      thumb = stepSlider.elem.querySelector('.slider__thumb');
-      progress = stepSlider.elem.querySelector('.slider__progress');
+      thumb = stepSlider.elem.querySelector(".slider__thumb");
+      progress = stepSlider.elem.querySelector(".slider__progress");
 
       let sliderRectLeft = stepSlider.elem.getBoundingClientRect().left;
       pointerMoveClientX = sliderRectLeft + 99;
 
-      clickEvent = new MouseEvent('click', { clientX: pointerMoveClientX, bubbles: true });
-    })
-
-    it('должен перемещать ползунок', () => {
-      stepSlider.elem.dispatchEvent(clickEvent);
-
-      expect(thumb.style.left).toBe('50%');
+      clickEvent = new MouseEvent("click", {
+        clientX: pointerMoveClientX,
+        bubbles: true,
+      });
     });
 
-    it('должен задавать ширину закрашиваемой области до ползунка', () => {
+    it("должен перемещать ползунок", () => {
       stepSlider.elem.dispatchEvent(clickEvent);
 
-      expect(progress.style.width).toBe('50%');
+      expect(thumb.style.left).toBe("50%");
     });
 
-    it('должен генерировать событие изменения значения', (done) => {
-      stepSlider.elem.addEventListener('slider-change', (event) => {
+    it("должен задавать ширину закрашиваемой области до ползунка", () => {
+      stepSlider.elem.dispatchEvent(clickEvent);
+
+      expect(progress.style.width).toBe("50%");
+    });
+
+    it("должен генерировать событие изменения значения", (done) => {
+      stepSlider.elem.addEventListener("slider-change", (event) => {
         expect(event.detail).toBe(1);
 
         done();
@@ -239,8 +250,5 @@ describe('7-module-4-task', () => {
 
       stepSlider.elem.dispatchEvent(clickEvent);
     });
-
   });
-
-
 });
