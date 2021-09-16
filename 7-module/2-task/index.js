@@ -1,29 +1,30 @@
+import createElement from "../../assets/lib/create-element.js";
+
 export default class Modal {
   constructor() {
-    let modal = this._createFragment(`<div class="modal"></div>`, true);
-    let overlay = this._createFragment(`<div class="modal__overlay"></div>`);
-    this._inner = this._createFragment(
-      `<div class="modal__inner"></div>`,
-      true
-    );
-    let closeBtn = this._createFragment(`
-      <button type="button" class="modal__close">
-        <img src="/assets/images/icons/cross-icon.svg" alt="close-icon">
-      </button>
-    `);
-    modal.append(overlay);
-    modal.append(this._inner);
-    this._inner.append(closeBtn);
-    this._elem = modal;
+    this.elements = {};
+    this.render();
 
-    this._keyDownHandler = this._keyDownHandler.bind(this);
+    this._close = this._close.bind(this);
     this._closeEngine();
   }
+  render() {
+    this._elem = createElement(`
+    <div class="modal">
+      <div class="modal__overlay"></div>
+      <div class="modal__inner">
+        <button type="button" class="modal__close">
+          <img src="/assets/images/icons/cross-icon.svg" alt="close-icon">
+        </button>
+      </div>
+    </div>
+    `);
+    this._inner = this._elem.querySelector(".modal__inner");
+  }
   open() {
-    let modal;
-    if ((modal = document.querySelector(".modal"))) modal.remove();
-    document.body.prepend(this._elem);
-    document.body.classList.add("is-modal-open");
+    let body = document.body;
+    if (!body.classList.contains("is-modal-open")) body.prepend(this._elem);
+    body.classList.add("is-modal-open");
   }
   close() {
     document.body.classList.remove("is-modal-open");
@@ -31,47 +32,32 @@ export default class Modal {
     this._elem.remove();
   }
   setTitle(string) {
-    let titleElem = this._createFragment(
-      `<div class="modal__title"></div>`,
-      true
-    );
-    titleElem.textContent = string;
-    this._inner.append(titleElem);
+    if (!this.elements.title) {
+      this.elements.title = createElement(`<div class="modal__title"></div>`);
+      this._inner.append(this.elements.title);
+    }
+    this.elements.title.textContent = string;
   }
   setBody(node) {
-    let modalBody = this._createFragment(
-      `<div class="modal__body"></div>`,
-      true
-    );
-    modalBody.append(node);
-    this._inner.append(modalBody);
+    if (!this.elements.body) {
+      this.elements.body = createElement(`<div class="modal__body"></div>`);
+      this._inner.append(this.elements.body);
+    }
+    this.elements.body.innerHTML = "";
+    this.elements.body.append(node);
   }
   _closeEngine() {
     /// по клику
-    this._elem.addEventListener("click", (e) => {
-      console.log(1);
-      let target = e.target.closest(".modal__close");
-      if (!target) return;
-      this._elem.remove();
-      document.body.classList.remove("is-modal-open");
-      document.removeEventListener("keydown", this._keyDownHandler);
-    });
+    this._elem.addEventListener("click", this._close);
     /// по кнопке esc
-    document.addEventListener("keydown", this._keyDownHandler);
+    document.addEventListener("keydown", this._close);
   }
-  _keyDownHandler(e) {
-    if (e.code === "Escape") {
+  _close(e) {
+    if (e.code === "Escape" || e.target.closest(".modal__close")) {
       this._elem.remove();
       document.body.classList.remove("is-modal-open");
-      document.removeEventListener("keydown", this._keyDownHandler);
+      this._elem.removeEventListener("click", this._close);
+      document.removeEventListener("keydown", this._close);
     }
-  }
-  _createFragment(html, isElement) {
-    isElement = isElement || false;
-    let fragment = document.createElement("template");
-    if (typeof html === "string") fragment.innerHTML = html;
-    return isElement === false
-      ? fragment.content
-      : fragment.content.firstElementChild;
   }
 }

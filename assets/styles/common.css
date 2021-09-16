@@ -18,6 +18,10 @@
   --font-secondary: "Sriracha";
 }
 
+.lol{
+  background: purple;
+}
+
 html {
   font-family: sans-serif;
   -ms-text-size-adjust: 100%;
