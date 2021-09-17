@@ -58,6 +58,11 @@ export default class Cart {
     }, 0);
   }
 
+  getTotalPriceItem(productId) {
+    let item = this.cartItems.find((item) => item.product.id === productId);
+    return item.product.price * item.count;
+  }
+
   getTotalPrice() {
     // ваш код
     return this.cartItems.reduce((acc, item) => {
@@ -83,7 +88,9 @@ export default class Cart {
               <img src="/assets/images/icons/square-plus-icon.svg" alt="plus">
             </button>
           </div>
-          <div class="cart-product__price">€${product.price.toFixed(2)}</div>
+          <div class="cart-product__price">€${this.getTotalPriceItem(
+            product.id
+          ).toFixed(2)}</div>
         </div>
       </div>
     </div>`);

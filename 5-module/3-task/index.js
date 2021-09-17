@@ -3,8 +3,6 @@ function initCarousel() {
   const arrowRight = document.querySelector(".carousel__arrow_right");
   const arrowLeft = document.querySelector(".carousel__arrow_left");
   const slides = document.querySelector(".carousel__inner");
-  ///const slide = document.querySelector(".carousel__slide");
-  //const slidesCount = document.querySelectorAll('.carousel__inner').length;
   let offset = slides.offsetWidth;
   let activeSlide = 0;
   arrowLeft.style.display = "none";

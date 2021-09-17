@@ -20,6 +20,7 @@ export default class RibbonMenu {
     ribbon.append(leftButton);
     ribbon.append((listWrapper.append(listItems), listWrapper));
     ribbon.append(rightButton);
+    this.value = "";
     this._engine(ribbon);
     this._elem = ribbon;
   }
@@ -52,6 +53,7 @@ export default class RibbonMenu {
             detail: target.dataset.id,
             bubbles: true,
           });
+          this.value = target.dataset.id;
           target.dispatchEvent(ribbonSelectEvent);
         }
       });
