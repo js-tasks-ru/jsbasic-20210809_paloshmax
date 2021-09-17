@@ -1,6 +1,6 @@
 export default class StepSlider {
   constructor({ steps, value = 0 }) {
-    this._options = {
+    this.options = {
       steps: steps,
       segments: steps - 1,
       currentStep: value,
@@ -17,7 +17,7 @@ export default class StepSlider {
         </div>
         <div class="slider__progress"></div>
         <div class="slider__steps">
-        ${`<span></span>`.repeat(this._options.steps)}
+        ${`<span></span>`.repeat(this.options.steps)}
         </div>
       </div>
     `,
@@ -39,19 +39,19 @@ export default class StepSlider {
 
     this._parts.value.textContent = amount;
 
-    if (this._options.currentStep !== amount)
-      this._parts.steps.children[this._options.currentStep].classList.remove(
+    if (this.options.currentStep !== amount)
+      this._parts.steps.children[this.options.currentStep].classList.remove(
         "slider__step-active"
       );
     this._parts.steps.children[amount].classList.add("slider__step-active");
 
     /// Сохраняем текущий шаг для следующего
-    this._options.currentStep = amount;
+    this.options.currentStep = amount;
   }
 
   _calculations(e, displace) {
-    let amount = this._options.currentStep;
-    let segments = this._options.segments;
+    let amount = this.options.currentStep;
+    let segments = this.options.segments;
     let percents;
     let normalisedPos;
     if (e instanceof Event) {
